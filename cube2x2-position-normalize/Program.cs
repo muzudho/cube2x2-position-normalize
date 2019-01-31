@@ -3,6 +3,7 @@
 [assembly: CLSCompliant(true)]
 namespace Grayscale.Cube2X2PositionNormalize
 {
+    using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
 
@@ -60,7 +61,26 @@ namespace Grayscale.Cube2X2PositionNormalize
                         "NormalizedPosition: {0}.",
                         normalizedPosition.BoardText));
 
-                    for (int i = 0; i < 64; i++)
+                    /*
+                    var hashSet = new HashSet<string>();
+                    for (int i = 0; i < Normalizer.ArraySize; i++)
+                    {
+                        hashSet.Add(normalizer.IsomorphicPosition[i].BoardText);
+                    }
+
+                    int j = 0;
+                    foreach (var board in hashSet)
+                    {
+                        Console.WriteLine(string.Format(
+                            CultureInfo.CurrentCulture,
+                            "[{0}] {1}.",
+                            j,
+                            board));
+                        j++;
+                    }
+                    */
+
+                    for (int i = 0; i < Normalizer.ArraySize; i++)
                     {
                         Console.WriteLine(string.Format(
                             CultureInfo.CurrentCulture,

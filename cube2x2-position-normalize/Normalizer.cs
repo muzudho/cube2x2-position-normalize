@@ -1,5 +1,7 @@
 ﻿namespace Grayscale.Cube2X2PositionNormalize
 {
+    using System;
+
     /// <summary>
     /// 正規化します。
     /// </summary>
@@ -10,14 +12,25 @@
         /// </summary>
         public Normalizer()
         {
-            this.IsomorphicPosition = new Position[64];
-            this.IsomorphicX = new int[64];
-            this.IsomorphicY = new int[64];
-            this.IsomorphicZ = new int[64];
+            this.IsomorphicPosition = new Position[ArraySize];
+            this.IsomorphicX = new int[ArraySize];
+            this.IsomorphicY = new int[ArraySize];
+            this.IsomorphicZ = new int[ArraySize];
         }
 
         /// <summary>
-        /// Gets 同型の局面は 64個。
+        /// Gets 配列の要素数。
+        /// </summary>
+        public static int ArraySize
+        {
+            get
+            {
+                return 4 * 4 * 4;
+            }
+        }
+
+        /// <summary>
+        /// Gets 同型の局面は 24個。
         /// </summary>
         public Position[] IsomorphicPosition { get; private set; }
 
@@ -37,88 +50,69 @@
         public int[] IsomorphicZ { get; private set; }
 
         /// <summary>
+        /// 同型を作ります。
+        /// </summary>
+        /// <param name="sourcePosition">元となる局面。</param>
+        /// <param name="isomorphicIndex">同型の要素番号。</param>
+        /// <param name="rotateX">+Xの方へ何回。</param>
+        /// <param name="rotateY">+Yの方へ何回。</param>
+        /// <param name="rotateZ">+Zの方へ何回。</param>
+        /// <returns>局面。</returns>
+        public Position CreateIsomorphic(Position sourcePosition, int isomorphicIndex, int rotateX, int rotateY, int rotateZ)
+        {
+            var pos = Position.Clone(sourcePosition);
+
+            for (int i = 0; i < rotateX; i++)
+            {
+                // +X
+                pos.RotateView(2);
+                this.IsomorphicX[isomorphicIndex] += 1;
+            }
+
+            for (int i = 0; i < rotateY; i++)
+            {
+                // +Y
+                pos.RotateView(0);
+                this.IsomorphicY[isomorphicIndex] += 1;
+            }
+
+            for (int i = 0; i < rotateZ; i++)
+            {
+                // +Z
+                pos.RotateView(1);
+                this.IsomorphicZ[isomorphicIndex] += 1;
+            }
+
+            return pos;
+        }
+
+        /// <summary>
         /// 正規化をする。
-        /// つまり、64個の局面を作り、そのうち代表的な１つを選ぶ。
+        /// つまり、24個の局面を作り、そのうち代表的な１つを選ぶ。
         /// </summary>
         /// <param name="sourcePosition">元となる局面。</param>
         /// <param name="handle">回す箇所。</param>
         /// <returns>局面と、回す箇所。</returns>
         public (Position, int) Normalize(Position sourcePosition, int handle)
         {
-            for (int i = 0; i < 64; i++)
+            int isomorphicIndex = 0;
+
+            for (int rotateZ = 0; rotateZ < 4; rotateZ++)
             {
-                var pos = Position.Clone(sourcePosition);
-                this.IsomorphicPosition[i] = pos;
+                for (int rotateY = 0; rotateY < 4; rotateY++)
+                {
+                    for (int rotateX = 0; rotateX < 4; rotateX++)
+                    {
+                        this.IsomorphicPosition[isomorphicIndex] = this.CreateIsomorphic(sourcePosition, isomorphicIndex, rotateX, rotateY, rotateZ);
+                        isomorphicIndex++;
 
-                if (i % 4 == 1)
-                {
-                    // +X
-                    pos.RotateView(2);
-                    this.IsomorphicX[i] += 1;
-                }
-                else if (i % 4 == 2)
-                {
-                    // +X
-                    pos.RotateView(2);
-                    pos.RotateView(2);
-                    this.IsomorphicX[i] += 2;
-                }
-                else if (i % 4 == 3)
-                {
-                    // +X
-                    pos.RotateView(2);
-                    pos.RotateView(2);
-                    pos.RotateView(2);
-                    this.IsomorphicX[i] += 3;
-                }
-
-                if ((i / 4) % 4 == 1)
-                {
-                    // +Y
-                    pos.RotateView(0);
-                    this.IsomorphicY[i] += 1;
-                }
-                else if ((i / 4) % 4 == 2)
-                {
-                    // +Y
-                    pos.RotateView(0);
-                    pos.RotateView(0);
-                    this.IsomorphicY[i] += 2;
-                }
-                else if ((i / 4) % 4 == 3)
-                {
-                    // +Y
-                    pos.RotateView(0);
-                    pos.RotateView(0);
-                    pos.RotateView(0);
-                    this.IsomorphicY[i] += 3;
-                }
-
-                if ((i / 16) % 4 == 1)
-                {
-                    // +Z
-                    pos.RotateView(1);
-                    this.IsomorphicZ[i] += 1;
-                }
-                else if ((i / 4) % 4 == 2)
-                {
-                    // +Z
-                    pos.RotateView(1);
-                    pos.RotateView(1);
-                    this.IsomorphicZ[i] += 2;
-                }
-                else if ((i / 4) % 4 == 3)
-                {
-                    // +Z
-                    pos.RotateView(1);
-                    pos.RotateView(1);
-                    pos.RotateView(1);
-                    this.IsomorphicZ[i] += 3;
+                        // Console.WriteLine("isomorphicIndex: " + isomorphicIndex);
+                    }
                 }
             }
 
-            var isomorphicText = new string[64];
-            for (int i = 0; i < 64; i++)
+            var isomorphicText = new string[ArraySize];
+            for (int i = 0; i < ArraySize; i++)
             {
                 isomorphicText[i] = this.IsomorphicPosition[i].BoardText;
             }
@@ -128,7 +122,7 @@
 
             /*
             // 確認表示。
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < StateSize; i++)
             {
                 Trace.WriteLine(string.Format(
                     CultureInfo.CurrentCulture,
@@ -143,7 +137,7 @@
 
             // 何番目のものか。
             int normalizedIndex = 0;
-            for (; normalizedIndex < 64; normalizedIndex++)
+            for (; normalizedIndex < ArraySize; normalizedIndex++)
             {
                 if (normalizedBoardText == isomorphicText[normalizedIndex])
                 {

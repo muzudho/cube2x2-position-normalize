@@ -3,7 +3,6 @@
 [assembly: CLSCompliant(true)]
 namespace Grayscale.Cube2X2PositionNormalize
 {
-    using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
 
@@ -54,7 +53,7 @@ namespace Grayscale.Cube2X2PositionNormalize
 
                     // 正規化する。
                     var normalizer = new Normalizer();
-                    (var normalizedPosition, var normalizedMove) = normalizer.Normalize(Position.Parse(currentPositionText), handle);
+                    (var normalizedPosition, var normalizedMove) = normalizer.Normalize(currentPositionText, handle);
 
                     Console.WriteLine(string.Format(
                         CultureInfo.CurrentCulture,

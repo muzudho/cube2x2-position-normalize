@@ -1,7 +1,5 @@
 ﻿namespace Grayscale.Cube2X2PositionNormalize
 {
-    using System;
-
     /// <summary>
     /// 正規化します。
     /// </summary>
@@ -25,7 +23,7 @@
         {
             get
             {
-                return 4 * 4 * 4;
+                return 6 * 4;
             }
         }
 
@@ -54,60 +52,126 @@
         /// </summary>
         /// <param name="sourcePosition">元となる局面。</param>
         /// <param name="isomorphicIndex">同型の要素番号。</param>
-        /// <param name="rotateX">+Xの方へ何回。</param>
-        /// <param name="rotateY">+Yの方へ何回。</param>
-        /// <param name="rotateZ">+Zの方へ何回。</param>
+        /// <param name="firstRotation">最初の6面のうちの1つ。</param>
+        /// <param name="secondRotation">次の4面のうちの1つ。</param>
         /// <returns>局面。</returns>
-        public Position CreateIsomorphic(Position sourcePosition, int isomorphicIndex, int rotateX, int rotateY, int rotateZ)
+        public Position CreateIsomorphic(Position sourcePosition, int isomorphicIndex, int firstRotation, int secondRotation)
         {
-            var pos = Position.Clone(sourcePosition);
+            var position = Position.Clone(sourcePosition);
 
-            for (int i = 0; i < rotateX; i++)
+            // 色は関係ない。
+            switch (firstRotation)
             {
-                // +X
-                pos.RotateView(2);
-                this.IsomorphicX[isomorphicIndex] += 1;
+                case 0:
+                    // そのまま。
+                    break;
+
+                case 1:
+                    // +X に1回 倒す。
+                    position.RotateView(2);
+                    this.IsomorphicX[isomorphicIndex] += 1;
+                    break;
+
+                case 2:
+                    // +X に1回 倒す。
+                    position.RotateView(2);
+                    this.IsomorphicX[isomorphicIndex] += 1;
+
+                    // +Z に1回 回す。
+                    position.RotateView(1);
+                    this.IsomorphicZ[isomorphicIndex] += 1;
+                    break;
+
+                case 3:
+                    // +X に1回 倒す。
+                    position.RotateView(2);
+                    this.IsomorphicX[isomorphicIndex] += 1;
+
+                    // +Z に2回 回す。
+                    position.RotateView(1);
+                    position.RotateView(1);
+                    this.IsomorphicZ[isomorphicIndex] += 2;
+                    break;
+
+                case 4:
+                    // +X に1回 倒す。
+                    position.RotateView(2);
+                    this.IsomorphicX[isomorphicIndex] += 1;
+
+                    // +Z に3回 回す。
+                    position.RotateView(1);
+                    position.RotateView(1);
+                    position.RotateView(1);
+                    this.IsomorphicZ[isomorphicIndex] += 3;
+                    break;
+
+                case 5:
+                    // +X に2回 倒す。
+                    position.RotateView(2);
+                    position.RotateView(2);
+                    this.IsomorphicX[isomorphicIndex] += 2;
+                    break;
+
+                default:
+                    break;
             }
 
-            for (int i = 0; i < rotateY; i++)
+            // 色は関係ない。
+            switch (secondRotation)
             {
-                // +Y
-                pos.RotateView(0);
-                this.IsomorphicY[isomorphicIndex] += 1;
+                case 0:
+                    break;
+
+                case 1:
+                    // +Z に1回 回す。
+                    position.RotateView(1);
+                    this.IsomorphicZ[isomorphicIndex] += 1;
+                    break;
+
+                case 2:
+                    // +Z に2回 回す。
+                    position.RotateView(1);
+                    position.RotateView(1);
+                    this.IsomorphicZ[isomorphicIndex] += 2;
+                    break;
+
+                case 3:
+                    // +Z に3回 回す。
+                    position.RotateView(1);
+                    position.RotateView(1);
+                    position.RotateView(1);
+                    this.IsomorphicZ[isomorphicIndex] += 3;
+                    break;
+
+                default:
+                    break;
             }
 
-            for (int i = 0; i < rotateZ; i++)
-            {
-                // +Z
-                pos.RotateView(1);
-                this.IsomorphicZ[isomorphicIndex] += 1;
-            }
-
-            return pos;
+            return position;
         }
 
         /// <summary>
         /// 正規化をする。
         /// つまり、24個の局面を作り、そのうち代表的な１つを選ぶ。
         /// </summary>
-        /// <param name="sourcePosition">元となる局面。</param>
+        /// <param name="sourcePositionText">元となる局面の文字列。</param>
         /// <param name="handle">回す箇所。</param>
         /// <returns>局面と、回す箇所。</returns>
-        public (Position, int) Normalize(Position sourcePosition, int handle)
+        public (Position, int) Normalize(string sourcePositionText, int handle)
         {
+            var sourcePosition = Position.Parse(sourcePositionText);
+
             int isomorphicIndex = 0;
 
-            for (int rotateZ = 0; rotateZ < 4; rotateZ++)
+            // 色は関係ない。
+            for (int firstRotation = 0; firstRotation < 6; firstRotation++)
             {
-                for (int rotateY = 0; rotateY < 4; rotateY++)
+                for (int secondRotation = 0; secondRotation < 4; secondRotation++)
                 {
-                    for (int rotateX = 0; rotateX < 4; rotateX++)
-                    {
-                        this.IsomorphicPosition[isomorphicIndex] = this.CreateIsomorphic(sourcePosition, isomorphicIndex, rotateX, rotateY, rotateZ);
-                        isomorphicIndex++;
+                    this.IsomorphicPosition[isomorphicIndex] = this.CreateIsomorphic(sourcePosition, isomorphicIndex, firstRotation, secondRotation);
+                    isomorphicIndex++;
 
-                        // Console.WriteLine("isomorphicIndex: " + isomorphicIndex);
-                    }
+                    // Console.WriteLine("isomorphicIndex: " + isomorphicIndex);
                 }
             }
 

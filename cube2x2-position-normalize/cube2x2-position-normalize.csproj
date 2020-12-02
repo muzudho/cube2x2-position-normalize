@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColorHelper.cs" />
+    <Compile Include="ColorNumber.cs" />
     <Compile Include="Normalizer.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Program.cs" />
